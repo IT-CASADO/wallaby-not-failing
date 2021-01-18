@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
+import { delay, mergeMap } from 'rxjs/operators';
 import { decrement, increment, reset } from '../counter.actions';
 import { countSelector, FeatureState } from '../counter.reducer';
 
@@ -11,13 +12,13 @@ import { countSelector, FeatureState } from '../counter.reducer';
 })
 export class MyCounterComponent {
   count$: Observable<number>;
-  //count$: Observable<FeatureState>;
 
   constructor(private store: Store<{ count: FeatureState }>) {
-    this.count$ = store.select(countSelector);
+    // to verify that Karma is also reporting GREEN, if async operation takes more time
+    var o = of(1);
+    this.count$ = o.pipe(delay(5000), mergeMap(() => store.select(countSelector).pipe(delay(5000))))
 
-    // this.count$ = store.select('count');
-    store.select(countSelector).subscribe(count => {
+    o.pipe(delay(5000), mergeMap(() => store.select(countSelector).pipe(delay(5000)))).subscribe(count => {
       console.log('countSelector subscribe', count)
     });
   }
@@ -34,8 +35,3 @@ export class MyCounterComponent {
     this.store.dispatch(reset());
   }
 }
-
-/*
-Use of this source code is governed by an MIT-style license that
-can be found in the LICENSE file at https://github.com/ngrx/platform
-*/
